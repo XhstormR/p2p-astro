@@ -1,0 +1,51 @@
+---
+import Sidebar from "./Sidebar.svelte";
+import ChatArea from "./ChatArea.svelte";
+import ActivityLogs from "./ActivityLogs.svelte";
+import menu from '../assets/svg/menu.svg';
+import close from '../assets/svg/close.svg';
+---
+
+<div class="drawer lg:drawer-open">
+    <input id="sidebar-toggle" type="checkbox" class="drawer-toggle" checked/>
+
+    <!-- 主内容区域 -->
+    <div class="drawer-content flex flex-col h-screen">
+        <!-- 顶部导航栏 -->
+        <nav class="navbar w-full bg-base-300">
+            <div class="navbar-start">
+                <label for="sidebar-toggle" id="sidebar-swap" class="btn btn-circle swap swap-rotate swap-active">
+                    <img alt="" class="swap-on invert" src={close.src}/>
+                    <img alt="" class="swap-off invert" src={menu.src}/>
+                </label>
+            </div>
+            <div class="navbar-center">
+                <span class="font-bold tracking-widest ">P2P</span>
+            </div>
+        </nav>
+
+        <!-- 主内容 -->
+        <main class="flex flex-col flex-1 overflow-hidden">
+            <ChatArea client:only="svelte"/>
+            <ActivityLogs client:only="svelte"/>
+        </main>
+    </div>
+
+    <!-- 侧边栏 -->
+    <div class="drawer-side">
+        <label for="sidebar-toggle" aria-label="close sidebar" class="drawer-overlay"></label>
+        <div
+            class="flex h-full flex-col items-start bg-base-200 is-drawer-close:w-0 is-drawer-open:w-lg">
+            <div class="is-drawer-close:hidden h-full w-full">
+                <!-- 侧边栏内容 -->
+                <Sidebar client:only="svelte"/>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const swap = document.querySelector<HTMLLabelElement>('#sidebar-swap')!;
+    const toggle = document.querySelector<HTMLInputElement>('#sidebar-toggle')!;
+    toggle.addEventListener('change', () => swap.classList.toggle('swap-active'));
+</script>

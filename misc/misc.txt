@@ -1,0 +1,28 @@
+Relay Peers：
+https://github.com/ipshipyard/p2p-forge
+
+Bootstrap Peers：
+https://github.com/ipfs/boxo/blob/v0.37.0/autoconf/fallbacks.go
+
+IPFS 路由搜索：
+https://delegated-ipfs.dev/routing/v1/providers/bafybeicklkqcnlvtiscr2hzkubjwnwjinvskffn4xorqeduft3wq7vm5u4?filter-addrs=tls
+https://specs.ipfs.tech/routing/http-routing-v1/
+
+IPFS 节点爬虫：
+https://github.com/dennis-tra/nebula
+./nebula-darwin-arm64 --json-out ./results/ crawl
+jq . ./results/2026-03-22T16:25_visits.json | rg 'libp2p.direct/tcp/.+/tls/ws'
+
+https://check.ipfs.network
+
+https://github.com/libp2p/js-libp2p-example-browser-pubsub
+
+
+bun create astro@latest test
+bun run astro add tailwind svelte
+bun add --dev oxfmt@latest oxlint@latest oxlint-tsgolint@latest daisyui@latest
+
+axios
+better-auth
+https://github.com/franken-ui/style
+https://github.com/themesberg/flowbite-astro-admin-dashboard
