@@ -1,78 +1,68 @@
 <script lang="ts">
-    import {autoscroll} from "../lib/autoscroll.ts";
-    import {store} from "../lib/p2p-store.svelte.ts";
-    import terminal from '../assets/svg/terminal.svg';
-    import assignment from '../assets/svg/assignment.svg';
-    import type {SystemLogType} from "../lib/types/log.d.ts";
-    import {formatTime} from "../lib/utils/index.ts";
+    import { autoscroll } from "../lib/autoscroll.ts";
+    import { store } from "../lib/p2p-store.svelte.ts";
+    import terminal from "../assets/svg/terminal.svg";
+    import assignment from "../assets/svg/assignment.svg";
+    import type { LogEntry, LogType } from "../lib/types/log.d.ts";
+    import { formatTime } from "../lib/utils/index.ts";
 
-    /** 日志类型 → badge 颜色 */
-    function logBadgeColor(type: SystemLogType): string {
-        switch (type) {
-            case "warn":
-                return "badge-error";
-            case "chat":
-                return "badge-info";
-            default:
-                return "badge-accent";
-        }
-    }
+    const colorMap: Record<LogType, string> = {
+        warn: "text-secondary",
+        chat: "text-info",
+        info: "text-primary",
+        discovery: "text-accent",
+        connect: "text-success",
+        disconnect: "text-warning",
+    };
+
+    const labelMap: Record<LogType, string> = {
+        warn: "WARN",
+        chat: "CHAT",
+        info: "INFO",
+        discovery: "DISC",
+        connect: "CONN",
+        disconnect: "LOST",
+    };
 </script>
 
-<section class="h-[30vh] bg-base-200 p-4">
-    <div class="tabs tabs-lift h-full">
+{#snippet logList(logs: LogEntry[], emptyText: String)}
+    <div class="h-full overflow-y-auto font-mono leading-relaxed" use:autoscroll={logs.length}>
+        {#if logs.length === 0}
+            <div class="py-4 text-center text-base-content/20">{emptyText}</div>
+        {:else}
+            <div class="space-y-0.5 px-2">
+                {#each logs as log (log.timestamp)}
+                    <div class="flex items-start gap-3">
+                        <span class="shrink-0 text-accent/50">[{formatTime(log.timestamp)}]</span>
+                        <span class="{colorMap[log.type]} shrink-0 font-bold">{labelMap[log.type]}</span>
+                        <span class="break-all text-base-content/50">{log.msg}</span>
+                    </div>
+                {/each}
+            </div>
+        {/if}
+    </div>
+{/snippet}
+
+<section class="glass-panel h-[30vh] border-t border-white/20">
+    <div class="tabs-border tabs h-full">
         <!-- 系统日志标签 -->
-        <label class="tab has-checked:bg-neutral has-checked:text-neutral-content">
+        <label class="tab tracking-wider has-checked:text-primary">
             <input type="radio" name="activity_logs_tabs" checked />
-            <img alt="" class="me-2 invert" src={terminal.src}/>
+            <img alt="" class="me-1 size-3.5 opacity-60 invert" src={terminal.src} />
             系统日志
         </label>
-        <div class="tab-content bg-neutral text-neutral-content border-base-300 p-2">
-            <div class="h-full overflow-y-auto font-mono" use:autoscroll={store.logs.length}>
-                {#if store.logs.length === 0}
-                    <div class="text-base-content/40 text-center py-4">点击「启动节点」开始</div>
-                {:else}
-                    <ul class="list p-1">
-                        {#each store.logs as log (log.timestamp)}
-                            <li class="list-row py-0.5 px-1.5 gap-3 items-start min-w-0">
-                                <span class="text-base-content/30 min-w-22.5 shrink-0">[{formatTime(log.timestamp)}]</span>
-                                <span class="badge badge-soft shrink-0 {logBadgeColor(log.type)}">{log.type.toUpperCase()}</span>
-                                <span class="text-base-content/70 leading-snug break-all list-col-grow">{log.msg}</span>
-                            </li>
-                        {/each}
-                    </ul>
-                {/if}
-            </div>
+        <div class="tab-content bg-transparent p-2">
+            {@render logList(store.logs, "点击「启动节点」开始")}
         </div>
 
         <!-- 节点日志标签 -->
-        <label class="tab has-checked:bg-neutral has-checked:text-neutral-content">
+        <label class="tab tracking-wider has-checked:text-primary">
             <input type="radio" name="activity_logs_tabs" />
-            <img alt="" class="me-2 invert" src={assignment.src}/>
+            <img alt="" class="me-1 size-3.5 opacity-60 invert" src={assignment.src} />
             节点日志
         </label>
-        <div class="tab-content bg-neutral text-neutral-content border-base-300 p-2">
-            <div class="h-full overflow-y-auto font-mono" use:autoscroll={store.peerLogs.length}>
-                {#if store.peerLogs.length === 0}
-                    <div class="text-base-content/40 text-center py-4">暂无节点活动</div>
-                {:else}
-                    <ul class="list p-1">
-                        {#each store.peerLogs as log (log.timestamp)}
-                            <li class="list-row py-0.5 px-1.5 gap-3 items-start min-w-0">
-                                <span class="text-base-content/30 min-w-22.5 shrink-0">[{formatTime(log.timestamp)}]</span>
-                                {#if log.type === "discovery"}
-                                    <span class="badge badge-soft badge-accent shrink-0">DISC</span>
-                                {:else if log.type === "connect"}
-                                    <span class="badge badge-soft badge-success shrink-0">CONN</span>
-                                {:else}
-                                    <span class="badge badge-soft badge-warning shrink-0">LOST</span>
-                                {/if}
-                                <span class="text-base-content/70 leading-snug break-all list-col-grow">{log.msg}</span>
-                            </li>
-                        {/each}
-                    </ul>
-                {/if}
-            </div>
+        <div class="tab-content bg-transparent p-2">
+            {@render logList(store.peerLogs, "暂无节点活动")}
         </div>
     </div>
 </section>

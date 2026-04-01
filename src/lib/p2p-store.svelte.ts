@@ -6,14 +6,14 @@
  *
  * 聊天消息通过 gossipsub pubsub 协议转发，按 topic 隔离实现一对一通信。
  */
+import type { PeerConnection, PeerStatus } from "#/lib/types/index.d.ts";
+import type { LogEntry, LogType } from "#/lib/types/log.d.ts";
+import type { Message } from "#/lib/types/message.d.ts";
+import { MessageMaker, now } from "#/lib/utils/index.ts";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { multiaddr } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
 import { createMyLibp2p, type MyLibp2p } from "./utils/p2p";
-import type { PeerStatus, PeerConnection } from "#/lib/types/index.d.ts";
-import type { SystemLogEntry, SystemLogType, PeerLogType, PeerLogEntry } from "#/lib/types/log.d.ts";
-import type { Message } from "#/lib/types/message.d.ts";
-import { MessageMaker, now } from "#/lib/utils/index.ts";
 
 /** 二进制帧类型标记 */
 const MSG_TEXT = 0x01;
@@ -34,6 +34,8 @@ class Libp2pStore {
     multiaddrs = $state.raw<string[]>([]);
     /** 错误信息 */
     errorMsg = $state("");
+    /** 节点启动时间（毫秒）*/
+    startedAt: number = $state(0);
 
     // ─── 节点 ───
 
@@ -50,9 +52,9 @@ class Libp2pStore {
     // ─── 日志 ───
 
     /** 系统操作日志 */
-    logs = $state.raw<SystemLogEntry[]>([]);
+    logs = $state.raw<LogEntry[]>([]);
     /** 节点活动日志（发现、连接、断开） */
-    peerLogs = $state.raw<PeerLogEntry[]>([]);
+    peerLogs = $state.raw<LogEntry[]>([]);
 
     // ─── Topic Peer 追踪（参考 index.js 的 setInterval 模式） ───
 
@@ -68,19 +70,14 @@ class Libp2pStore {
     /** topic peer 轮询定时器 */
     #topicPeerInterval: ReturnType<typeof setInterval> | null = null;
 
-    /** 获取类型安全的 pubsub 服务实例 */
-    get #pubsub() {
-        return this.libp2p!.services.pubsub;
-    }
-
     // ─── 日志方法 ───
 
-    addLog(msg: string, type: SystemLogType = "info") {
+    addLog(msg: string, type: LogType = "info") {
         this.logs = [...this.logs, { timestamp: now(), msg, type }];
     }
 
     /** 添加节点活动日志 */
-    addPeerLog(msg: string, type: PeerLogType) {
+    addPeerLog(msg: string, type: LogType) {
         this.peerLogs = [...this.peerLogs, { timestamp: now(), msg, type }];
     }
 
@@ -120,7 +117,7 @@ class Libp2pStore {
         if (!this.libp2p) return;
         const topic = this.#chatTopicFor(remotePeer);
         if (this.#subscribedTopics.has(topic)) return;
-        this.#pubsub.subscribe(topic);
+        this.libp2p.services.pubsub.subscribe(topic);
         this.#subscribedTopics.add(topic);
         this.addLog(`已订阅 topic: ${topic}`);
     }
@@ -129,7 +126,7 @@ class Libp2pStore {
     #unsubscribeAll() {
         if (!this.libp2p) return;
         for (const topic of this.#subscribedTopics) {
-            this.#pubsub.unsubscribe(topic);
+            this.libp2p.services.pubsub.unsubscribe(topic);
         }
         this.#subscribedTopics.clear();
     }
@@ -148,7 +145,9 @@ class Libp2pStore {
             this.addLog(`收到来自 ${fromPeerId} 的文本消息`, "chat");
         } else if (type === MSG_FILE) {
             const blob = new Blob([payload.slice()]);
-            const file = new File([blob], "received_file", { type: "application/octet-stream" });
+            const file = new File([blob], "received_file", {
+                type: "application/octet-stream",
+            });
             msg = MessageMaker.fileMessage(fromPeerId, this.peerId, file);
             this.addLog(`收到来自 ${fromPeerId} 的文件消息`, "chat");
         } else {
@@ -176,7 +175,7 @@ class Libp2pStore {
         const payload = new Uint8Array(1 + encoded.length);
         payload[0] = MSG_TEXT;
         payload.set(encoded, 1);
-        await this.#pubsub.publish(topic, payload);
+        await this.libp2p.services.pubsub.publish(topic, payload);
         this.chatMessages = [...this.chatMessages, MessageMaker.textMessage(this.peerId, peer, text)];
     }
 
@@ -189,7 +188,7 @@ class Libp2pStore {
         const payload = new Uint8Array(1 + fileBytes.length);
         payload[0] = MSG_FILE;
         payload.set(fileBytes, 1);
-        await this.#pubsub.publish(topic, payload);
+        await this.libp2p.services.pubsub.publish(topic, payload);
         this.chatMessages = [...this.chatMessages, MessageMaker.fileMessage(this.peerId, peer, file)];
     }
 
@@ -218,7 +217,9 @@ class Libp2pStore {
             const transport = conn.remoteAddr.toString();
 
             try {
-                const rtt = await this.libp2p.services.ping.ping(conn.remotePeer, { signal });
+                const rtt = await this.libp2p.services.ping.ping(conn.remotePeer, {
+                    signal,
+                });
                 this.addLog(`已连接: ${remoteId} via ${transport} (RTT: ${rtt}ms)`);
             } catch {
                 this.addLog(`已连接: ${remoteId} via ${transport} (ping 失败)`, "warn");
@@ -254,7 +255,7 @@ class Libp2pStore {
             const { signal } = this.#abortController;
 
             // 监听 pubsub 消息
-            this.#pubsub.addEventListener(
+            this.libp2p.services.pubsub.addEventListener(
                 "message",
                 evt => {
                     const fromPeer = evt.detail.type === "signed" ? evt.detail.from.toString() : "unknown";
@@ -317,7 +318,9 @@ class Libp2pStore {
                 }
                 try {
                     const topic = this.#chatTopicFor(this.chatPeer);
-                    this.topicPeers = this.#pubsub.getSubscribers(topic).map(id => id.toString());
+                    this.topicPeers = this.libp2p.services.pubsub
+                        .getSubscribers(topic)
+                        .map(id => id.toString());
                 } catch {
                     this.topicPeers = [];
                 }
@@ -326,6 +329,7 @@ class Libp2pStore {
             // 启动节点
             await this.libp2p.start();
             this.status = "running";
+            this.startedAt = Date.now();
             this.addLog("libp2p 节点已启动");
         } catch (err) {
             this.errorMsg = err instanceof Error ? err.message : String(err);
@@ -359,6 +363,7 @@ class Libp2pStore {
             this.peerConnTree = [];
             this.topicPeers = [];
             this.chatMessages = [];
+            this.startedAt = 0;
             this.addLog("节点已停止");
         } catch (err) {
             this.addLog(`停止失败: ${err instanceof Error ? err.message : String(err)}`, "warn");

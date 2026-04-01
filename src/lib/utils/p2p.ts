@@ -5,16 +5,16 @@
  * 流程：浏览器通过 WS 连接公共 relay 节点，获取 /p2p-circuit/webrtc 地址，
  *       对方浏览器通过该地址完成 SDP 握手后建立直连 WebRTC 数据通道。
  */
-import { createLibp2p } from "libp2p";
-import { webSockets } from "@libp2p/websockets";
-import { webRTC } from "@libp2p/webrtc";
 import { noise } from "@chainsafe/libp2p-noise";
 import { yamux } from "@chainsafe/libp2p-yamux";
+import { delegatedRoutingV1HttpApiClient } from "@helia/delegated-routing-v1-http-api-client";
 import { circuitRelayTransport } from "@libp2p/circuit-relay-v2";
+import { gossipsub } from "@libp2p/gossipsub";
 import { identify, identifyPush } from "@libp2p/identify";
 import { ping } from "@libp2p/ping";
-import { gossipsub } from "@libp2p/gossipsub";
-import { delegatedRoutingV1HttpApiClient } from "@helia/delegated-routing-v1-http-api-client";
+import { webRTC } from "@libp2p/webrtc";
+import { webSockets } from "@libp2p/websockets";
+import { createLibp2p } from "libp2p";
 
 /** 从 createMyLibp2p 返回类型推导出 Libp2p */
 export type MyLibp2p = Awaited<ReturnType<typeof createMyLibp2p>>;

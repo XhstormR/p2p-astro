@@ -1,7 +1,7 @@
 import type { FileMessage, MessageStatus, TextMessage } from "#/lib/types/message.d.ts";
 
 export function now(): number {
-    return Date.now() + Math.random();
+    return Date.now() + Math.random() + Math.random();
 }
 
 /** 将时间戳格式化为本地时间字符串 */

@@ -1,19 +1,9 @@
-/** 系统日志类型 */
-export type SystemLogType = "info" | "warn" | "chat";
+/** 日志类型 */
+export type LogType = "info" | "warn" | "chat" | "discovery" | "connect" | "disconnect";
 
-/** 节点日志类型 */
-export type PeerLogType = "discovery" | "connect" | "disconnect";
-
-/** 系统日志条目 */
-export type SystemLogEntry = {
+/** 日志条目 */
+export type LogEntry = {
     timestamp: number;
     msg: string;
-    type: SystemLogType;
-};
-
-/** 节点日志条目 */
-export type PeerLogEntry = {
-    timestamp: number;
-    msg: string;
-    type: PeerLogType;
+    type: LogType;
 };

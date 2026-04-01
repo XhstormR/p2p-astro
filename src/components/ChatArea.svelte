@@ -1,10 +1,10 @@
 <script lang="ts">
-    import {autoscroll} from "../lib/autoscroll.ts";
-    import {store} from "../lib/p2p-store.svelte.ts";
-    import type {Message} from "../lib/types/message.d.ts";
-    import {formatTime} from "../lib/utils/index.ts";
-    import forum from '../assets/svg/forum.svg';
-    import arrow_upward from '../assets/svg/arrow_upward.svg';
+    import { autoscroll } from "../lib/autoscroll.ts";
+    import { store } from "../lib/p2p-store.svelte.ts";
+    import type { Message } from "../lib/types/message.d.ts";
+    import { formatTime } from "../lib/utils/index.ts";
+    import forum from "../assets/svg/forum.svg";
+    import arrow_upward from "../assets/svg/arrow_upward.svg";
 
     /** 聊天输入 */
     let chatInput = $state("");
@@ -59,39 +59,54 @@
     }
 </script>
 
-<section class="flex-1 flex flex-col min-h-0">
-    {#snippet emptyMsg(text: String)}
-        <div class="hero h-full">
-            <div class="hero-content text-center">
-                <div>
-                    <img alt="" class="size-16 mb-4 mx-auto opacity-30 brightness-0 invert"
-                         src={forum.src}/>
-                    <p class="text-base-content/40">{text}</p>
-                </div>
+{#snippet emptyMsg(text: String)}
+    <div class="hero h-full">
+        <div class="hero-content text-center">
+            <div>
+                <img alt="" class="mx-auto mb-4 size-16 opacity-15 brightness-0 invert" src={forum.src} />
+                <p class="text-base-content/25">{text}</p>
             </div>
         </div>
-    {/snippet}
+    </div>
+{/snippet}
 
-    {#snippet msgContent(msg: Message)}
-        {#if msg.type === "Text"}
-            <p class="leading-normal">{msg.text}</p>
-        {:else}
-            <div class="flex items-center gap-2 mt-1">
-                <span class="text-sm truncate max-w-50">{msg.fileName}</span>
-                <span class="text-xs opacity-60">({(msg.fileSize / 1024).toFixed(1)} KB)</span>
-                <a
-                    href={URL.createObjectURL(msg.file)}
-                    download={msg.fileName}
-                    class="btn btn-xs btn-ghost"
+{#snippet msgContent(msg: Message)}
+    {#if msg.type === "Text"}
+        <p class="leading-relaxed">{msg.text}</p>
+    {:else}
+        <div class="mt-1 flex items-center gap-2">
+            <span class="max-w-50 truncate">{msg.fileName}</span>
+            <span class="badge badge-ghost badge-sm">({(msg.fileSize / 1024).toFixed(1)} KB)</span>
+            <a
+                href={URL.createObjectURL(msg.file)}
+                download={msg.fileName}
+                class="btn text-accent btn-ghost btn-xs"
+            >
+                下载
+            </a>
+        </div>
+    {/if}
+{/snippet}
+
+<section class="flex min-h-0 flex-1 flex-col">
+    <!-- 聊天头部 -->
+    {#if store.chatPeer}
+        <div class="glass-card mx-5 mt-4 flex items-center gap-3 rounded-xl p-3">
+            <div class="avatar avatar-placeholder shrink-0">
+                <div
+                    class="w-9 rounded-full bg-linear-to-br from-accent to-primary text-primary-content shadow-lg"
                 >
-                    下载
-                </a>
+                    <span class="font-bold">P</span>
+                </div>
             </div>
-        {/if}
-    {/snippet}
+            <div class="min-w-0">
+                <h3 class="truncate font-bold tracking-wide">{store.chatPeer}</h3>
+            </div>
+        </div>
+    {/if}
 
     <!-- 聊天记录区域 -->
-    <div class="flex-1 overflow-y-auto p-5 space-y-4" use:autoscroll={store.chatMessages.length}>
+    <div class="flex-1 space-y-5 overflow-y-auto px-5 py-4" use:autoscroll={store.chatMessages.length}>
         {#if !store.chatPeer && store.status === "running"}
             {@render emptyMsg("从左侧选择一个已连接的节点开始聊天")}
         {:else if store.status !== "running"}
@@ -101,76 +116,60 @@
         {:else}
             <!-- 消息列表 -->
             {#each store.chatMessages as msg (msg.timestamp)}
-                {@const time = formatTime(msg.timestamp)}
-                {#if msg.sender === store.peerId}
-                    <div class="chat chat-end">
-                        <div class="chat-image avatar avatar-placeholder">
-                            <div class="bg-primary text-primary-content w-8 rounded-full">
-                                <span class="text-xs">我</span>
-                            </div>
+                {@const isLocal = msg.sender === store.peerId}
+                <div class="chat {isLocal ? 'chat-end' : 'chat-start'}">
+                    <div class="avatar chat-image avatar-placeholder">
+                        <div
+                            class="{isLocal
+                                ? 'bg-primary text-primary-content'
+                                : 'bg-neutral text-neutral-content'} w-8 rounded-full"
+                        >
+                            <span class="text-xs">{isLocal ? "我" : msg.sender[0]}</span>
                         </div>
-                        <div class="chat-header uppercase tracking-widest">
+                    </div>
+                    <div class="chat-header tracking-wider uppercase">
+                        {#if isLocal}
                             本地节点
-                            <time class="text-base-content/30 font-mono">{time}</time>
-                        </div>
-                        <div class="chat-bubble chat-bubble-primary">
-                            {@render msgContent(msg)}
-                        </div>
+                        {:else}
+                            <span class="inline-block max-w-50 truncate align-bottom">{msg.sender}</span>
+                        {/if}
+                        <time class="font-mono text-base-content/30">{formatTime(msg.timestamp)}</time>
                     </div>
-                {:else}
-                    <div class="chat chat-start">
-                        <div class="chat-image avatar avatar-placeholder">
-                            <div class="bg-neutral text-neutral-content w-8 rounded-full">
-                                <span class="text-xs">{msg.sender[0]}</span>
-                            </div>
-                        </div>
-                        <div class="chat-header uppercase tracking-wider">
-                            <span
-                                class="truncate max-w-50 inline-block align-bottom">{msg.sender}</span>
-                            <time class="text-base-content/30 font-mono">{time}</time>
-                        </div>
-                        <div class="chat-bubble">
-                            {@render msgContent(msg)}
-                        </div>
+                    <div class="chat-bubble {isLocal ? 'chat-bubble-primary' : ''}">
+                        {@render msgContent(msg)}
                     </div>
-                {/if}
+                </div>
             {/each}
         {/if}
     </div>
 
     <!-- 聊天输入区域 -->
-    <div class="p-4 bg-base-200 border-t border-base-300">
-        <div
-            class="card bg-base-100 border border-base-content/10 focus-within:border-white">
-            <div class="card-body p-0">
-                <!-- 上部：文本输入 -->
-                <textarea
-                    bind:value={chatInput}
-                    class="w-full resize-none max-h-48 bg-transparent outline-none border-none text-base-content placeholder:text-base-content/40 px-4 pt-4 pb-2"
-                    onkeydown={handleKeyDown}
-                    autofocus
-                    placeholder="⏎: Send; ⇧ + ⏎: Newline"
-                    rows="3"
-                ></textarea>
-                <!-- 分割线 -->
-                <div class="divider my-0"></div>
-                <!-- 下部：文件选择 + 发送按钮 -->
-                <div class="card-actions items-center justify-between px-2 pb-2">
-                    <input
-                        accept="*/*"
-                        bind:this={fileInput}
-                        class="file-input file-input-ghost"
-                        onchange={handleFileChange}
-                        type="file"
-                    />
-                    <button
-                        class="btn btn-primary btn-circle"
-                        disabled={!canSend}
-                        onclick={sendMessage}
-                    >
-                        <img alt="发送" class="invert size-4" src={arrow_upward.src}/>
-                    </button>
-                </div>
+    <div class="p-4">
+        <div class="glass-card flex flex-col rounded-2xl focus-within:border-white">
+            <textarea
+                autofocus
+                bind:value={chatInput}
+                class="field-sizing-content max-h-[4lh] w-full resize-none border-none bg-transparent px-4 py-3 outline-none"
+                onkeydown={handleKeyDown}
+                placeholder="⏎: Send; ⇧ + ⏎: Newline"
+                rows="1"
+            ></textarea>
+            <div class="divider"></div>
+            <div class="flex items-center justify-between px-3 pb-3">
+                <input
+                    accept="*/*"
+                    bind:this={fileInput}
+                    class="file-input file-input-ghost bg-transparent"
+                    onchange={handleFileChange}
+                    type="file"
+                />
+                <button
+                    class="btn btn-circle shrink-0 shadow-none btn-primary active:scale-90"
+                    disabled={!canSend}
+                    onclick={sendMessage}
+                >
+                    <img alt="发送" src={arrow_upward.src} />
+                </button>
             </div>
         </div>
     </div>

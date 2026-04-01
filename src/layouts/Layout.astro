@@ -1,13 +1,17 @@
 ---
 import "../styles/global.css";
 ---
+
 <!doctype html>
 <html lang="en">
     <head>
         <meta charset="UTF-8" />
-        <meta name="viewport" content="width=device-width" />
-        <link rel="icon" type="image/svg+xml" href="favicon.svg" />
-        <link rel="icon" href="favicon.ico" />
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <meta name="theme-color" content="#18648A" />
+        <meta name="description" content="Transfer Files Cross-Platform. No Setup, No Signup." />
+        <link rel="icon" type="image/png" href="favicon.png" />
+        <link rel="apple-touch-icon" href="assets/maskable_icon.png" />
+        <link rel="manifest" href="manifest.json" />
         <meta name="generator" content={Astro.generator} />
         <title>P2P</title>
     </head>
@@ -15,12 +19,3 @@ import "../styles/global.css";
         <slot />
     </body>
 </html>
-
-<style>
-    html,
-    body {
-        margin: 0;
-        width: 100%;
-        height: 100%;
-    }
-</style>
