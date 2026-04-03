@@ -9,13 +9,9 @@
         peerId: string;
         /** 关联地址列表 */
         addrs: string[];
-        /** 是否高亮（当前选中） */
-        active?: boolean;
-        /** 点击 summary 时的回调 */
-        onselect?: () => void;
     }
 
-    let { peerId, addrs, active = false, onselect }: Props = $props();
+    let { peerId, addrs }: Props = $props();
 
     const tooltipProviderProps: Tooltip.ProviderProps = {
         delayDuration: 0,
@@ -33,11 +29,7 @@
 
 <li>
     <details class="group" open>
-        <summary
-            class="cursor-zoom-in group-open:cursor-zoom-out"
-            class:menu-active={active}
-            onclick={onselect}
-        >
+        <summary class="cursor-zoom-in group-open:cursor-zoom-out">
             <span class="inline-grid *:[grid-area:1/1]">
                 <span class="status animate-ping status-success"></span>
                 <span class="status status-success"></span>

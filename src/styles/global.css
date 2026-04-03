@@ -52,6 +52,12 @@ a {
     .glass-card {
         background: rgba(14, 32, 53, 0.6);
         backdrop-filter: blur(12px);
-        border: 1px solid rgba(60, 73, 91, 0.2);
+        border: 1px solid #f8f8f31a;
+    }
+
+    .drop-zone {
+        outline: #32a1ce dashed medium;
+        background: rgba(white, 0.2);
+        transition: background 0.15s linear;
     }
 }

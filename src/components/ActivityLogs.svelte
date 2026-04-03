@@ -1,10 +1,9 @@
 <script lang="ts">
-    import { autoscroll } from "../lib/autoscroll.ts";
     import { store } from "../lib/p2p-store.svelte.ts";
     import terminal from "../assets/svg/terminal.svg";
     import assignment from "../assets/svg/assignment.svg";
-    import type { LogEntry, LogType } from "../lib/types/log.d.ts";
-    import { formatTime } from "../lib/utils/index.ts";
+    import type { LogEntry, LogType } from "#/lib/types/log";
+    import { formatTime } from "#/lib/utils";
 
     const colorMap: Record<LogType, string> = {
         warn: "text-secondary",
@@ -26,7 +25,7 @@
 </script>
 
 {#snippet logList(logs: LogEntry[], emptyText: String)}
-    <div class="h-full overflow-y-auto font-mono leading-relaxed" use:autoscroll={logs.length}>
+    <div class="h-full overflow-y-auto font-mono text-sm leading-relaxed">
         {#if logs.length === 0}
             <div class="py-4 text-center text-base-content/20">{emptyText}</div>
         {:else}
@@ -52,7 +51,7 @@
             系统日志
         </label>
         <div class="tab-content bg-transparent p-2">
-            {@render logList(store.logs, "点击「启动节点」开始")}
+            {@render logList(store.systemLogs, "点击「启动节点」开始")}
         </div>
 
         <!-- 节点日志标签 -->

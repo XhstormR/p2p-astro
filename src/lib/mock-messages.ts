@@ -1,5 +1,5 @@
 import type { Message } from "#/lib/types/message.d.ts";
-import { MessageMaker } from "#/lib/utils/index.ts";
+import { MessageMaker } from "#/lib/utils/MessageMaker.ts";
 
 export const MESSAGES: Message[] = [
     MessageMaker.textMessage(

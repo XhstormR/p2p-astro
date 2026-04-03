@@ -1,7 +1,57 @@
-import type { FileMessage, MessageStatus, TextMessage } from "#/lib/types/message.d.ts";
-
 export function now(): number {
     return Date.now() + Math.random() + Math.random();
+}
+
+export function getRandomInt(min: number, max: number) {
+    return Math.floor(Math.random() * (max - min) + min);
+}
+
+export function download(data: BlobPart, fileName: string, fileType?: string) {
+    let blob = new Blob([data], { type: fileType || "application/octet-stream" });
+    let url = URL.createObjectURL(blob);
+
+    let link = document.createElement("a");
+    link.href = url;
+    link.download = fileName;
+    link.style.display = "none";
+    document.body.appendChild(link);
+    link.click();
+
+    setTimeout(() => {
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+    }, 500);
+}
+
+export function blobToDataUrl(blob: Blob) {
+    return new Promise<string>((resolve, reject) => {
+        let reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result as string);
+        reader.onerror = () => reject(reader.error);
+        reader.readAsDataURL(blob);
+    });
+}
+
+export function isValidUrl(str: string): boolean {
+    try {
+        const url = new URL(str);
+        return url.protocol === "http:" || url.protocol === "https:";
+    } catch {
+        return false;
+    }
+}
+
+export async function dataUrlToBlob(dataUrl: string) {
+    let response = await fetch(dataUrl);
+    return await response.blob();
+}
+
+export function error(err: any): never {
+    throw new Error(err);
+}
+
+export function copyOf<T>(old: T, partial: Partial<T>): T {
+    return { ...old, ...partial };
 }
 
 /** 将时间戳格式化为本地时间字符串 */
@@ -16,44 +66,5 @@ export async function copyToClipboard(text: string): Promise<boolean> {
         return true;
     } catch {
         return false;
-    }
-}
-
-export class MessageMaker {
-    static textMessage(
-        sender: string,
-        receiver: string,
-        text: string,
-        status: MessageStatus = "Queued",
-        timestamp: number = now(),
-    ): TextMessage {
-        return {
-            type: "Text",
-            sender: sender,
-            receiver: receiver,
-            text: text,
-            status: status,
-            timestamp: timestamp,
-        };
-    }
-
-    static fileMessage(
-        sender: string,
-        receiver: string,
-        file: File,
-        status: MessageStatus = "Queued",
-        timestamp: number = now(),
-    ): FileMessage {
-        return {
-            type: "File",
-            sender: sender,
-            receiver: receiver,
-            file: file,
-            fileName: file.name,
-            fileType: file.type,
-            fileSize: file.size,
-            status: status,
-            timestamp: timestamp,
-        };
     }
 }

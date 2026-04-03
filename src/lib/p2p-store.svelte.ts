@@ -6,10 +6,11 @@
  *
  * 聊天消息通过 gossipsub pubsub 协议转发，按 topic 隔离实现一对一通信。
  */
-import type { PeerConnection, PeerStatus } from "#/lib/types/index.d.ts";
+import type { PeerConnection, PeerStatus, TopicPeer } from "#/lib/types/index.d.ts";
 import type { LogEntry, LogType } from "#/lib/types/log.d.ts";
 import type { Message } from "#/lib/types/message.d.ts";
-import { MessageMaker, now } from "#/lib/utils/index.ts";
+import { MessageMaker } from "#/lib/utils/MessageMaker.ts";
+import { now } from "#/lib/utils/index.ts";
 import { peerIdFromString } from "@libp2p/peer-id";
 import { multiaddr } from "@multiformats/multiaddr";
 import { WebRTC } from "@multiformats/multiaddr-matcher";
@@ -44,25 +45,33 @@ class Libp2pStore {
 
     // ─── 聊天 ───
 
-    /** 当前聊天对象 Peer ID */
-    chatPeer = $state("");
-    /** 聊天消息列表 */
-    chatMessages = $state.raw<Message[]>([]);
+    /** 当前订阅节点 Peer ID */
+    selectedPeer = $state("");
+    /** 消息变更版本号（触发 derived 重新计算） */
+    #messageVersion = $state(0);
+    /** 聊天消息列表（由 selectedPeer 和 messageVersion 自动派生） */
+    chatMessages: Message[] = $derived.by(() => {
+        this.#messageVersion;
+        const messages = this.#messageMap.get(this.selectedPeer);
+        return messages ? [...messages] : [];
+    });
 
     // ─── 日志 ───
 
     /** 系统操作日志 */
-    logs = $state.raw<LogEntry[]>([]);
+    systemLogs = $state.raw<LogEntry[]>([]);
     /** 节点活动日志（发现、连接、断开） */
     peerLogs = $state.raw<LogEntry[]>([]);
 
-    // ─── Topic Peer 追踪（参考 index.js 的 setInterval 模式） ───
+    // ─── Topic Peer 追踪 ───
 
-    /** 当前聊天 topic 的订阅者列表 */
-    topicPeers = $state.raw<string[]>([]);
+    /** 聊天 topic 的订阅者列表（peerId → topic 映射） */
+    topicPeers = $state.raw<TopicPeer[]>([]);
 
     // ─── 内部状态（非响应式） ───
 
+    /** 每个 peer 的消息存储（peer ID → 消息列表） */
+    #messageMap = new Map<string, Message[]>();
     /** 已订阅的 gossipsub topic 集合 */
     #subscribedTopics = new Set<string>();
     /** 事件监听器生命周期控制 */
@@ -73,7 +82,7 @@ class Libp2pStore {
     // ─── 日志方法 ───
 
     addLog(msg: string, type: LogType = "info") {
-        this.logs = [...this.logs, { timestamp: now(), msg, type }];
+        this.systemLogs = [...this.systemLogs, { timestamp: now(), msg, type }];
     }
 
     /** 添加节点活动日志 */
@@ -99,6 +108,17 @@ class Libp2pStore {
             .getMultiaddrs()
             .filter(ma => WebRTC.matches(ma))
             .map(ma => ma.toString());
+    }
+
+    #refreshTopicPeers() {
+        const entries: TopicPeer[] = [];
+        for (const topic of this.libp2p!.services.pubsub.getTopics()) {
+            const subscribers = this.libp2p!.services.pubsub.getSubscribers(topic);
+            if (subscribers.length !== 0) {
+                entries.push({ peerId: subscribers[0].toString(), topic });
+            }
+        }
+        this.topicPeers = entries;
     }
 
     // ─── GossipSub Topic 管理 ───
@@ -133,6 +153,17 @@ class Libp2pStore {
 
     // ─── 聊天消息处理 ───
 
+    /** 向指定 peer 的消息列表追加一条消息 */
+    #addPeerMessage(peer: string, message: Message) {
+        const messages = this.#messageMap.get(peer);
+        if (messages) {
+            messages.push(message);
+        } else {
+            this.#messageMap.set(peer, [message]);
+        }
+        this.#messageVersion++;
+    }
+
     /** 处理收到的 pubsub 消息 */
     #handlePubsubMessage(fromPeerId: string, raw: Uint8Array) {
         if (raw.length === 0) return;
@@ -155,15 +186,10 @@ class Libp2pStore {
             return;
         }
 
-        this.chatMessages = [...this.chatMessages, msg];
-        if (!this.chatPeer) {
-            this.chatPeer = fromPeerId;
+        this.#addPeerMessage(fromPeerId, msg);
+        if (!this.selectedPeer) {
+            this.selectedPeer = fromPeerId;
         }
-    }
-
-    /** 释放聊天消息资源（File 对象由 GC 自动回收，无需手动释放） */
-    revokeChatBlobUrls() {
-        // File 对象不持有 blob URL，由垃圾回收自动处理
     }
 
     /** 发送文本消息 */
@@ -176,7 +202,7 @@ class Libp2pStore {
         payload[0] = MSG_TEXT;
         payload.set(encoded, 1);
         await this.libp2p.services.pubsub.publish(topic, payload);
-        this.chatMessages = [...this.chatMessages, MessageMaker.textMessage(this.peerId, peer, text)];
+        this.#addPeerMessage(peer, MessageMaker.textMessage(this.peerId, peer, text));
     }
 
     /** 发送文件消息（直接传输原始二进制） */
@@ -189,16 +215,14 @@ class Libp2pStore {
         payload[0] = MSG_FILE;
         payload.set(fileBytes, 1);
         await this.libp2p.services.pubsub.publish(topic, payload);
-        this.chatMessages = [...this.chatMessages, MessageMaker.fileMessage(this.peerId, peer, file)];
+        this.#addPeerMessage(peer, MessageMaker.fileMessage(this.peerId, peer, file));
     }
 
-    /** 选择聊天对象 */
+    /** 选择订阅节点 */
     selectChatPeer(peer: string) {
-        this.chatPeer = peer;
-        this.revokeChatBlobUrls();
-        this.chatMessages = [];
+        this.selectedPeer = peer;
         this.#subscribeChatTopic(peer);
-        this.addLog(`已选择聊天对象: ${peer}`, "chat");
+        this.addLog(`已选择订阅节点: ${peer}`, "chat");
     }
 
     // ─── 连接 ───
@@ -208,7 +232,7 @@ class Libp2pStore {
         if (!this.libp2p) return;
         const input = addr.trim();
         this.addLog(`正在连接: ${input}`);
-        const signal = AbortSignal.timeout(5000);
+        const signal = AbortSignal.timeout(10000);
 
         try {
             const target = input.startsWith("/") ? multiaddr(input) : peerIdFromString(input);
@@ -242,7 +266,7 @@ class Libp2pStore {
         this.status = "starting";
         this.errorMsg = "";
         this.addLog("正在创建 libp2p 节点...");
-        localStorage.setItem("debug", "libp2p:*");
+        //localStorage.setItem("debug", "libp2p:*");
 
         try {
             this.libp2p = await createMyLibp2p();
@@ -256,13 +280,16 @@ class Libp2pStore {
 
             // 监听 pubsub 消息
             this.libp2p.services.pubsub.addEventListener(
-                "message",
+                "gossipsub:message",
                 evt => {
-                    const fromPeer = evt.detail.type === "signed" ? evt.detail.from.toString() : "unknown";
-                    // 忽略自己发送的消息
-                    if (fromPeer === this.peerId) return;
-                    this.#handlePubsubMessage(fromPeer, evt.detail.data);
+                    const fromPeer = evt.detail.propagationSource.toString();
+                    this.#handlePubsubMessage(fromPeer, evt.detail.msg.data);
                 },
+                { signal },
+            );
+            this.libp2p.services.pubsub.addEventListener(
+                "subscription-change",
+                _ => this.#refreshTopicPeers(),
                 { signal },
             );
             this.addLog("GossipSub 消息监听已注册");
@@ -292,6 +319,7 @@ class Libp2pStore {
             this.libp2p.addEventListener(
                 "peer:disconnect",
                 evt => {
+                    this.#refreshTopicPeers();
                     this.addPeerLog(`已断开: ${evt.detail.toString()}`, "disconnect");
                 },
                 { signal },
@@ -309,22 +337,6 @@ class Libp2pStore {
             this.libp2p.addEventListener("self:peer:update", () => this.updateListeningAddrs(), {
                 signal,
             });
-
-            // topic peer 轮询
-            this.#topicPeerInterval = setInterval(() => {
-                if (!this.libp2p || !this.chatPeer) {
-                    this.topicPeers = [];
-                    return;
-                }
-                try {
-                    const topic = this.#chatTopicFor(this.chatPeer);
-                    this.topicPeers = this.libp2p.services.pubsub
-                        .getSubscribers(topic)
-                        .map(id => id.toString());
-                } catch {
-                    this.topicPeers = [];
-                }
-            }, 1000);
 
             // 启动节点
             await this.libp2p.start();
@@ -353,16 +365,15 @@ class Libp2pStore {
             this.#abortController?.abort();
             this.#abortController = null;
             this.#unsubscribeAll();
-            this.revokeChatBlobUrls();
+            this.topicPeers = [];
             await this.libp2p.stop();
             this.libp2p = null;
             this.status = "stopped";
             this.peerId = "";
-            this.chatPeer = "";
+            this.selectedPeer = "";
             this.multiaddrs = [];
             this.peerConnTree = [];
-            this.topicPeers = [];
-            this.chatMessages = [];
+            this.#messageMap.clear();
             this.startedAt = 0;
             this.addLog("节点已停止");
         } catch (err) {

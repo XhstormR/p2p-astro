@@ -5,6 +5,7 @@
     import link from "../assets/svg/link.svg";
     import lan from "../assets/svg/lan.svg";
     import call from "../assets/svg/call.svg";
+    import forum from "../assets/svg/forum.svg";
     import public_ from "../assets/svg/public.svg";
 
     /** 连接地址输入 */
@@ -65,7 +66,7 @@
     }
 </script>
 
-{#snippet statusDot(color: String, ping: Boolean)}
+{#snippet statusDot(color: string, ping: boolean)}
     <span class="inline-grid *:[grid-area:1/1]">
         {#if ping}<span class="status status-{color} animate-ping"></span>{/if}
         <span class="status status-{color}"></span>
@@ -80,7 +81,7 @@
             disabled={store.status === "starting"}
             onclick={toggleNode}
         >
-            <img alt="" class="invert" src={autorenew.src} />
+            <img alt="" src={autorenew.src} />
             {buttonLabel}
         </button>
 
@@ -168,6 +169,36 @@
             </div>
         </div>
 
+        <!-- 订阅节点（由 topic peers 驱动） -->
+        <div class="glass-card card">
+            <div class="card-body">
+                <h2 class="card-title tracking-widest">
+                    <img alt="" class="size-4 invert" src={forum.src} />
+                    订阅节点
+                </h2>
+                {#if store.topicPeers.length > 0}
+                    <ul class="menu w-full p-0">
+                        {#each store.topicPeers as tp (tp.peerId)}
+                            <li>
+                                <button
+                                    class="truncate font-mono text-sm tracking-tight"
+                                    class:menu-active={store.selectedPeer === tp.peerId}
+                                    onclick={() => store.selectChatPeer(tp.peerId)}
+                                >
+                                    {@render statusDot("success", true)}
+                                    <span class="truncate">{tp.peerId}</span>
+                                </button>
+                            </li>
+                        {/each}
+                    </ul>
+                {:else if store.status === "running"}
+                    <p class="text-center">暂无订阅节点</p>
+                {:else}
+                    <p class="text-center">节点未启动</p>
+                {/if}
+            </div>
+        </div>
+
         <!-- 本地节点 -->
         <div class="glass-card card">
             <div class="card-body">
@@ -197,12 +228,7 @@
                 {#if store.peerConnTree.length > 0}
                     <ul class="menu w-full p-0">
                         {#each store.peerConnTree as peer (peer.peerId)}
-                            <PeerTree
-                                peerId={peer.peerId}
-                                addrs={peer.addrs}
-                                active={store.chatPeer === peer.peerId}
-                                onselect={() => store.selectChatPeer(peer.peerId)}
-                            />
+                            <PeerTree peerId={peer.peerId} addrs={peer.addrs} />
                         {/each}
                     </ul>
                 {:else if store.status === "running"}
