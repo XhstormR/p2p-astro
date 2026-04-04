@@ -1,7 +1,5 @@
 <script lang="ts">
     import { store } from "../lib/p2p-store.svelte.ts";
-    import terminal from "../assets/svg/terminal.svg";
-    import assignment from "../assets/svg/assignment.svg";
     import type { LogEntry, LogType } from "#/lib/types/log";
     import { formatTime } from "#/lib/utils";
 
@@ -47,7 +45,7 @@
         <!-- 系统日志标签 -->
         <label class="tab tracking-wider has-checked:text-primary">
             <input type="radio" name="activity_logs_tabs" checked />
-            <img alt="" class="me-1 size-3.5 opacity-60 invert" src={terminal.src} />
+            <span class="material-symbols me-1 text-lg opacity-60">terminal</span>
             系统日志
         </label>
         <div class="tab-content bg-transparent p-2">
@@ -57,7 +55,7 @@
         <!-- 节点日志标签 -->
         <label class="tab tracking-wider has-checked:text-primary">
             <input type="radio" name="activity_logs_tabs" />
-            <img alt="" class="me-1 size-3.5 opacity-60 invert" src={assignment.src} />
+            <span class="material-symbols me-1 text-lg opacity-60">assignment</span>
             节点日志
         </label>
         <div class="tab-content bg-transparent p-2">

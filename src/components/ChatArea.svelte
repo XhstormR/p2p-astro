@@ -1,8 +1,6 @@
 <script lang="ts">
     import { store } from "../lib/p2p-store.svelte.ts";
     import ChatMessage from "./ChatMessage.svelte";
-    import forum from "../assets/svg/forum.svg";
-    import arrow_upward from "../assets/svg/arrow_upward.svg";
     import { dropZone } from "../lib/actions/drop-zone.svelte.ts";
 
     /** 聊天输入 */
@@ -62,7 +60,7 @@
     <div class="hero h-full">
         <div class="hero-content text-center">
             <div>
-                <img alt="" class="mx-auto mb-4 size-16 opacity-15 brightness-0 invert" src={forum.src} />
+                <span class="material-symbols mx-auto mb-4 text-6xl opacity-15">forum</span>
                 <p class="text-base-content/25">{text}</p>
             </div>
         </div>
@@ -139,7 +137,7 @@
                     disabled={!canSend}
                     onclick={sendMessage}
                 >
-                    <img alt="发送" src={arrow_upward.src} />
+                    <span class="material-symbols">arrow_upward</span>
                 </button>
             </div>
         </div>

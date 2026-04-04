@@ -1,12 +1,6 @@
 <script lang="ts">
     import { store } from "../lib/p2p-store.svelte.ts";
     import PeerTree from "./PeerTree.svelte";
-    import autorenew from "../assets/svg/autorenew.svg";
-    import link from "../assets/svg/link.svg";
-    import lan from "../assets/svg/lan.svg";
-    import call from "../assets/svg/call.svg";
-    import forum from "../assets/svg/forum.svg";
-    import public_ from "../assets/svg/public.svg";
 
     /** 连接地址输入 */
     let dialAddr = $state("");
@@ -81,7 +75,7 @@
             disabled={store.status === "starting"}
             onclick={toggleNode}
         >
-            <img alt="" src={autorenew.src} />
+            <span class="material-symbols">autorenew</span>
             {buttonLabel}
         </button>
 
@@ -146,7 +140,7 @@
         <div class="glass-card card">
             <div class="card-body">
                 <h2 class="card-title tracking-widest">
-                    <img alt="" class="size-4 invert" src={call.src} />
+                    <span class="material-symbols text-lg">call</span>
                     拨号
                 </h2>
                 <div class="join w-full">
@@ -163,7 +157,7 @@
                         disabled={store.status !== "running" || dialing || !dialAddr.trim()}
                         onclick={dialPeer}
                     >
-                        <img alt="" class="invert" src={link.src} />
+                        <span class="material-symbols">link</span>
                     </button>
                 </div>
             </div>
@@ -173,7 +167,7 @@
         <div class="glass-card card">
             <div class="card-body">
                 <h2 class="card-title tracking-widest">
-                    <img alt="" class="size-4 invert" src={forum.src} />
+                    <span class="material-symbols text-lg">forum</span>
                     订阅节点
                 </h2>
                 {#if store.topicPeers.length > 0}
@@ -203,7 +197,7 @@
         <div class="glass-card card">
             <div class="card-body">
                 <h2 class="card-title tracking-widest">
-                    <img alt="" class="size-4 invert" src={lan.src} />
+                    <span class="material-symbols text-lg">lan</span>
                     本地节点
                 </h2>
                 {#if store.multiaddrs.length > 0}
@@ -222,7 +216,7 @@
         <div class="glass-card card">
             <div class="card-body">
                 <h2 class="card-title tracking-widest">
-                    <img alt="" class="size-4 invert" src={public_.src} />
+                    <span class="material-symbols text-lg">public</span>
                     远程节点
                 </h2>
                 {#if store.peerConnTree.length > 0}

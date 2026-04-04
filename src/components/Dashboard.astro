@@ -2,8 +2,6 @@
 import Sidebar from "./Sidebar.svelte";
 import ChatArea from "./ChatArea.svelte";
 import ActivityLogs from "./ActivityLogs.svelte";
-import Menu from "../assets/svg/menu.svg";
-import Close from "../assets/svg/close.svg";
 ---
 
 <!-- 背景遮罩层 -->
@@ -26,8 +24,8 @@ import Close from "../assets/svg/close.svg";
                     id="sidebar-swap"
                     class="btn swap btn-circle swap-rotate swap-active btn-ghost"
                 >
-                    <Close class="swap-on invert" />
-                    <Menu class="swap-off invert" />
+                    <span class="material-symbols swap-on">close</span>
+                    <span class="material-symbols swap-off">menu</span>
                 </label>
             </div>
         </nav>

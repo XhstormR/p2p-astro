@@ -2,8 +2,6 @@
     import type { Message } from "../lib/types/message.d.ts";
     import { throttleButton } from "../lib/actions/throttle-button.svelte.ts";
     import { copyToClipboard, download, formatTime, isValidUrl } from "../lib/utils/index.ts";
-    import copyIcon from "../assets/svg/copy.svg";
-    import downloadIcon from "../assets/svg/download.svg";
 
     interface Props {
         msg: Message;
@@ -53,11 +51,11 @@
 <div class="flex items-center gap-1">
     {#if msg.type === "Text"}
         <button class="btn btn-ghost btn-xs" {@attach throttleButton()} onclick={onCopy} title="复制">
-            <img alt="复制" class="size-3.5" src={copyIcon.src} />
+            <span class="material-symbols text-lg">content_copy</span>
         </button>
     {:else}
         <button class="btn btn-ghost btn-xs" {@attach throttleButton()} onclick={onDownload} title="下载">
-            <img alt="下载" class="size-3.5" src={downloadIcon.src} />
+            <span class="material-symbols text-lg">download</span>
         </button>
     {/if}
     <time class="ml-auto text-xs opacity-50">{formatTime(msg.timestamp)}</time>
