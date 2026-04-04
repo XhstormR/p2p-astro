@@ -6,7 +6,7 @@ export function throttleButton(throttleTime = 4_000): Attachment<HTMLButtonEleme
         let throttled = $state(false);
 
         let off = on(node, "click", () => {
-            throttled = true;
+            setTimeout(() => (throttled = true), 0);
             setTimeout(() => (throttled = false), throttleTime);
         });
 

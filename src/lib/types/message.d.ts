@@ -1,3 +1,5 @@
+import { Binary } from "bson";
+
 interface BaseMessage {
     readonly type: MessageType;
     status: MessageStatus;
@@ -16,7 +18,7 @@ export interface TextMessage extends BaseMessage {
 export interface FileMessage extends BaseMessage {
     readonly type: "File";
 
-    readonly file: File;
+    readonly data: Binary;
     readonly fileName: string;
     readonly fileType: string;
     readonly fileSize: number;

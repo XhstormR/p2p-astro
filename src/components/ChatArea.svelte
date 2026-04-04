@@ -1,33 +1,41 @@
 <script lang="ts">
     import { store } from "../lib/p2p-store.svelte.ts";
+    import { messageHub } from "#/lib/message-hub.svelte.ts";
     import ChatMessage from "./ChatMessage.svelte";
     import { dropZone } from "../lib/actions/drop-zone.svelte.ts";
+    import { pasteZone } from "#/lib/actions/paste-zone.svelte.ts";
 
     /** 聊天输入 */
     let chatInput = $state("");
     /** 发送中状态 */
     let sending = $state(false);
-    /** 待发送文件 */
-    let pendingFile: File | null = $state(null);
+    /** 待发送文件列表 */
+    let pendingFiles: File[] = $state([]);
     /** 文件输入元素引用 */
-    let fileInput: HTMLInputElement | undefined = $state(undefined);
+    let fileInput: HTMLInputElement | null = $state(null);
     /** 是否可发送：未在发送中、有目标节点、有内容 */
-    let canSend = $derived(!sending && !!store.selectedPeer && (!!chatInput.trim() || !!pendingFile));
+    let canSend = $derived(
+        !sending && !!store.selectedPeer && (!!chatInput.trim() || pendingFiles.length > 0),
+    );
+    /** 聊天消息列表（SvelteMap 本身是响应式的，#messageMap.set 自动触发 $derived 更新） */
+    let chatMessages = $derived(messageHub.getPeerMessages(store.selectedPeer));
 
     /** 发送消息：文本和/或文件 */
     async function sendMessage() {
         if (!canSend) return;
         const text = chatInput.trim();
-        const file = pendingFile;
+        const files = [...pendingFiles];
         sending = true;
         try {
             if (text) {
-                await store.sendText(store.selectedPeer, text);
+                await messageHub.sendText(store.selectedPeer, text);
                 chatInput = "";
             }
-            if (file) {
-                await store.sendFile(store.selectedPeer, file);
-                pendingFile = null;
+            for (const file of files) {
+                await messageHub.sendFile(store.selectedPeer, file);
+            }
+            if (files.length > 0) {
+                pendingFiles = [];
                 if (fileInput) fileInput.value = "";
             }
         } catch (err) {
@@ -40,11 +48,14 @@
     /** 处理文件选择：暂存文件，等待点击发送 */
     function handleFileChange(e: Event) {
         const input = e.target as HTMLInputElement;
-        if (input.files && input.files[0]) {
-            pendingFile = input.files[0];
-        } else {
-            pendingFile = null;
-        }
+        pendingFiles = input.files ? Array.from(input.files) : [];
+    }
+
+    /** 将外部文件（拖放/粘贴）设置到 fileInput，复用已有的选择流程 */
+    function setFileInput(files: File[]) {
+        const dt = new DataTransfer();
+        for (const f of files) dt.items.add(f);
+        fileInput.files = dt.files;
     }
 
     /** 处理键盘事件 */
@@ -67,7 +78,11 @@
     </div>
 {/snippet}
 
-<section class="flex min-h-0 flex-1 flex-col" {@attach dropZone(files => console.log(files))}>
+<section
+    class="flex min-h-0 flex-1 flex-col"
+    {@attach dropZone(files => setFileInput(files))}
+    {@attach pasteZone(files => setFileInput(files))}
+>
     <!-- 聊天头部 -->
     {#if store.selectedPeer}
         <div class="glass-card mx-5 mt-4 flex items-center gap-3 rounded-xl p-3">
@@ -90,19 +105,17 @@
             {@render emptyMsg("从左侧选择一个订阅节点开始聊天")}
         {:else if store.status !== "running"}
             {@render emptyMsg("启动节点以开始通信")}
-        {:else if store.chatMessages.length === 0}
+        {:else if chatMessages.length === 0}
             {@render emptyMsg("暂无消息，发送一条开始聊天")}
         {:else}
             <!-- 消息列表 -->
-            {#each store.chatMessages as msg (msg.timestamp)}
+            {#each chatMessages as msg (msg.timestamp)}
                 {@const isLocal = msg.sender === store.peerId}
                 <div class="chat {isLocal ? 'chat-end' : 'chat-start'}">
                     <div class="chat-header">
-                        {#if isLocal}
-                            本地节点
-                        {:else}
-                            <span class="inline-block max-w-50 truncate align-bottom">{msg.sender}</span>
-                        {/if}
+                        <span class="inline-block max-w-50 truncate align-bottom">
+                            {isLocal ? store.peerId : msg.sender}
+                        </span>
                     </div>
                     <div class="chat-bubble {isLocal ? 'chat-bubble-primary' : ''}">
                         <ChatMessage {msg} />
@@ -129,6 +142,7 @@
                     accept="*/*"
                     bind:this={fileInput}
                     class="file-input file-input-ghost bg-transparent"
+                    multiple
                     onchange={handleFileChange}
                     type="file"
                 />

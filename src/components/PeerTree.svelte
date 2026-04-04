@@ -2,7 +2,7 @@
     import encodeQR from "qr";
     import { Tooltip } from "bits-ui";
     import { copyToClipboard } from "#/lib/utils";
-    import { store } from "#/lib/p2p-store.svelte";
+    import { snackBar } from "#/lib/snack-bar.svelte.ts";
 
     interface Props {
         /** 节点 Peer ID */
@@ -19,11 +19,12 @@
         disableCloseOnTriggerClick: true,
     };
 
-    /** 复制文本到剪贴板，通过 store 记录日志 */
+    /** 复制文本到剪贴板 */
     async function copyText(text: string, e: MouseEvent) {
         e.stopPropagation();
-        const ok = await copyToClipboard(text);
-        store.addLog(ok ? "已复制到剪贴板" : "复制失败，请手动复制", ok ? "info" : "warn");
+        let ok = await copyToClipboard(text);
+        if (ok) snackBar.info("已复制到剪贴板");
+        else snackBar.error("复制失败，请手动复制");
     }
 </script>
 

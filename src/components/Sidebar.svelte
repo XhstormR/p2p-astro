@@ -1,6 +1,8 @@
 <script lang="ts">
     import { store } from "../lib/p2p-store.svelte.ts";
+    import { noSleep } from "../lib/no-sleep.svelte.ts";
     import PeerTree from "./PeerTree.svelte";
+    import { error } from "#/lib/utils/index.ts";
 
     /** 连接地址输入 */
     let dialAddr = $state("");
@@ -38,6 +40,11 @@
         return () => clearInterval(timer);
     });
 
+    noSleep.on().catch(err => {
+        console.warn(err);
+        error(`Request for wake lock failed: ${err}`);
+    });
+
     /** 连接到远程节点 */
     async function dialPeer() {
         if (!dialAddr.trim() || dialing) return;
@@ -60,11 +67,11 @@
     }
 </script>
 
-{#snippet statusDot(color: string, ping: boolean)}
-    <span class="inline-grid *:[grid-area:1/1]">
-        {#if ping}<span class="status status-{color} animate-ping"></span>{/if}
+{#snippet statusDot(color: string)}
+    <div class="inline-grid *:[grid-area:1/1]">
+        <span class="status status-{color} animate-ping"></span>
         <span class="status status-{color}"></span>
-    </span>
+    </div>
 {/snippet}
 
 <aside class="flex h-full flex-col">
@@ -93,19 +100,19 @@
                 <div class="stat-value">
                     {#if store.status === "running"}
                         <span class="badge gap-1.5 badge-soft badge-success">
-                            {@render statusDot("success", true)} 运行中
+                            {@render statusDot("success")} 运行中
                         </span>
                     {:else if store.status === "starting"}
                         <span class="badge gap-1.5 badge-soft badge-warning">
-                            {@render statusDot("warning", true)} 启动中
+                            {@render statusDot("warning")} 启动中
                         </span>
                     {:else if store.status === "error"}
                         <span class="badge gap-1.5 badge-soft badge-error">
-                            {@render statusDot("error", true)} 异常
+                            {@render statusDot("error")} 异常
                         </span>
                     {:else}
                         <span class="badge gap-1.5 badge-soft">
-                            {@render statusDot("neutral", false)} 已停止
+                            {@render statusDot("neutral")} 已停止
                         </span>
                     {/if}
                 </div>
@@ -128,11 +135,15 @@
         <div class="glass-card stats w-full stats-horizontal">
             <div class="stat place-items-center">
                 <div class="stat-title">已监听地址</div>
-                <div class="stat-value text-accent">{store.multiaddrs.length}</div>
+                <div class="stat-value {store.status === 'running' ? 'text-accent' : 'text-neutral'}">
+                    {store.multiaddrs.length}
+                </div>
             </div>
             <div class="stat place-items-center">
                 <div class="stat-title">已连接节点</div>
-                <div class="stat-value text-success">{store.peerConnTree.length}</div>
+                <div class="stat-value {store.status === 'running' ? 'text-success' : 'text-neutral'}">
+                    {store.peerConnTree.length}
+                </div>
             </div>
         </div>
 
@@ -172,14 +183,14 @@
                 </h2>
                 {#if store.topicPeers.length > 0}
                     <ul class="menu w-full p-0">
-                        {#each store.topicPeers as tp (tp.peerId)}
+                        {#each store.topicPeers as tp (tp.topic)}
                             <li>
                                 <button
                                     class="truncate font-mono text-sm tracking-tight"
                                     class:menu-active={store.selectedPeer === tp.peerId}
                                     onclick={() => store.selectChatPeer(tp.peerId)}
                                 >
-                                    {@render statusDot("success", true)}
+                                    {@render statusDot(tp.subscribed ? "success" : "error")}
                                     <span class="truncate">{tp.peerId}</span>
                                 </button>
                             </li>

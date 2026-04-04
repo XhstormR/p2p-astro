@@ -1,5 +1,9 @@
-import type { FileMessage, MessageStatus, TextMessage } from "#/lib/types/message.d.ts";
+import type { FileMessage, Message, MessageStatus, TextMessage } from "#/lib/types/message.d.ts";
 import { now } from "#/lib/utils/index.ts";
+import { Binary, deserialize, serialize } from "bson";
+
+export const encodeMessage = (msg: Message) => serialize(msg);
+export const decodeMessage = (raw: Uint8Array) => deserialize(raw) as Message;
 
 export class MessageMaker {
     static textMessage(
@@ -19,18 +23,18 @@ export class MessageMaker {
         };
     }
 
-    static fileMessage(
+    static async fileMessage(
         sender: string,
         receiver: string,
         file: File,
         status: MessageStatus = "Queued",
         timestamp: number = now(),
-    ): FileMessage {
+    ): Promise<FileMessage> {
         return {
             type: "File",
             sender: sender,
             receiver: receiver,
-            file: file,
+            data: new Binary(await file.bytes()),
             fileName: file.name,
             fileType: file.type,
             fileSize: file.size,

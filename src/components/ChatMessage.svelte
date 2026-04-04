@@ -1,7 +1,8 @@
 <script lang="ts">
     import type { Message } from "../lib/types/message.d.ts";
     import { throttleButton } from "../lib/actions/throttle-button.svelte.ts";
-    import { copyToClipboard, download, formatTime, isValidUrl } from "../lib/utils/index.ts";
+    import { copyToClipboard, download, formatFileSize, formatTime, isValidUrl } from "../lib/utils/index.ts";
+    import { snackBar } from "#/lib/snack-bar.svelte.ts";
 
     interface Props {
         msg: Message;
@@ -12,19 +13,19 @@
     /** 文本消息是否为有效 URL */
     let isUrl = $derived(msg.type === "Text" && isValidUrl(msg.text));
 
-    /** 格式化文件大小 */
-    function formatFileSize(bytes: number): string {
-        if (bytes < 1024) return `${bytes} B`;
-        if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
-        return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-    }
-
-    function onCopy() {
-        if (msg.type === "Text") copyToClipboard(msg.text);
+    async function onCopy() {
+        if (msg.type === "Text") {
+            let ok = await copyToClipboard(msg.text);
+            if (ok) snackBar.info("已复制到剪贴板");
+            else snackBar.error("复制失败，请手动复制");
+        }
     }
 
     function onDownload() {
-        if (msg.type === "File") download(msg.file, msg.fileName, msg.fileType);
+        if (msg.type === "File") {
+            download(msg.data.value() as BlobPart, msg.fileName, msg.fileType);
+            snackBar.info("已开始下载");
+        }
     }
 </script>
 
@@ -37,7 +38,7 @@
     {:else}
         <p class="leading-relaxed wrap-break-word whitespace-pre-wrap">{msg.text}</p>
     {/if}
-{:else}
+{:else if msg.type === "File"}
     <p class="leading-relaxed">
         <span class="max-w-50 truncate">{msg.fileName}</span>
         <span class="opacity-60">({formatFileSize(msg.fileSize)})</span>
@@ -50,13 +51,17 @@
 <!-- 操作按钮 + 时间 -->
 <div class="flex items-center gap-1">
     {#if msg.type === "Text"}
-        <button class="btn btn-ghost btn-xs" {@attach throttleButton()} onclick={onCopy} title="复制">
-            <span class="material-symbols text-lg">content_copy</span>
-        </button>
-    {:else}
-        <button class="btn btn-ghost btn-xs" {@attach throttleButton()} onclick={onDownload} title="下载">
-            <span class="material-symbols text-lg">download</span>
-        </button>
+        <div class="has-enabled:tooltip has-enabled:tooltip-bottom" data-tip="复制文本">
+            <button class="btn btn-circle btn-ghost btn-info" onclick={onCopy} {@attach throttleButton()}>
+                <span class="material-symbols">content_copy</span>
+            </button>
+        </div>
+    {:else if msg.type === "File"}
+        <div class="has-enabled:tooltip has-enabled:tooltip-bottom" data-tip="下载文件">
+            <button class="btn btn-circle btn-ghost btn-info" onclick={onDownload} {@attach throttleButton()}>
+                <span class="material-symbols">download</span>
+            </button>
+        </div>
     {/if}
-    <time class="ml-auto text-xs opacity-50">{formatTime(msg.timestamp)}</time>
+    <time class="ml-auto opacity-50">{formatTime(msg.timestamp)}</time>
 </div>

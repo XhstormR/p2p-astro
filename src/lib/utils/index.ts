@@ -50,8 +50,15 @@ export function error(err: any): never {
     throw new Error(err);
 }
 
-export function copyOf<T>(old: T, partial: Partial<T>): T {
+export function copyOf<T>(old: T, partial?: Partial<T>): T {
     return { ...old, ...partial };
+}
+
+export function formatFileSize(bytes?: number): string {
+    if (!bytes) return "0 Bytes";
+    const sizeTier = ["Bytes", "KB", "MB", "GB", "TB"];
+    const i = Math.floor(Math.log(bytes) / Math.log(1024));
+    return `${parseFloat((bytes / Math.pow(1024, i)).toFixed(2))} ${sizeTier[i]}`;
 }
 
 /** 将时间戳格式化为本地时间字符串 */
