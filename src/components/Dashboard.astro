@@ -2,7 +2,10 @@
 import Sidebar from "./Sidebar.svelte";
 import ChatArea from "./ChatArea.svelte";
 import ActivityLogs from "./ActivityLogs.svelte";
+import ToasterWrapper from "./ToasterWrapper.svelte";
 ---
+
+<ToasterWrapper client:only="svelte" />
 
 <!-- 背景遮罩层 -->
 <div class="fixed inset-0 bg-base-100/40"></div>

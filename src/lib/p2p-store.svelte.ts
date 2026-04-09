@@ -8,7 +8,7 @@
  */
 import type { PeerConnection, PeerStatus, TopicPeer } from "#/lib/types/index.d.ts";
 import type { LogEntry, LogType } from "#/lib/types/log.d.ts";
-import type { Message } from "#/lib/types/message";
+import type { Message } from "#/lib/types/message.d.ts";
 import { now } from "#/lib/utils/index.ts";
 import { decodeMessage, encodeMessage } from "#/lib/utils/message.ts";
 import { peerIdFromString } from "@libp2p/peer-id";
