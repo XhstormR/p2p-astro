@@ -8,15 +8,20 @@
         /** 节点 Peer ID */
         peerId: string;
         /** 关联地址列表 */
-        addrs: string[];
+        addresses: string[];
     }
 
-    let { peerId, addrs }: Props = $props();
+    let { peerId, addresses }: Props = $props();
 
     const tooltipProviderProps: Tooltip.ProviderProps = {
         delayDuration: 0,
         skipDelayDuration: 0,
         disableCloseOnTriggerClick: true,
+    };
+
+    const tooltipContentProps: Tooltip.ContentProps = {
+        side: "right",
+        sideOffset: 8,
     };
 
     /** 复制文本到剪贴板 */
@@ -40,7 +45,7 @@
 
         <ul>
             <Tooltip.Provider {...tooltipProviderProps}>
-                {#each addrs as addr (addr)}
+                {#each addresses as addr (addr)}
                     <li>
                         <Tooltip.Root>
                             <Tooltip.Trigger
@@ -51,9 +56,7 @@
                             </Tooltip.Trigger>
                             <Tooltip.Portal>
                                 <Tooltip.Content
-                                    side="right"
-                                    sideOffset={8}
-                                    strategy="fixed"
+                                    {...tooltipContentProps}
                                     class="z-50 h-48 w-48 rounded-lg bg-white p-0"
                                 >
                                     <Tooltip.Arrow />

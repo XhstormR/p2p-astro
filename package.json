@@ -29,7 +29,7 @@
         "@libp2p/webrtc": "^6.0.16",
         "@libp2p/websockets": "^10.1.8",
         "@tailwindcss/vite": "^4.2.2",
-        "astro": "^6.1.5",
+        "astro": "^6.1.6",
         "bits-ui": "^2.17.3",
         "bson": "^7.2.0",
         "libp2p": "^3.2.0",
@@ -37,17 +37,17 @@
         "tailwindcss": "^4.2.2"
     },
     "devDependencies": {
-        "@astrojs/svelte": "^8.0.4",
+        "@astrojs/svelte": "^8.0.5",
         "daisyui": "^5.5.19",
-        "oxfmt": "^0.44.0",
-        "oxlint": "^1.59.0",
+        "oxfmt": "^0.45.0",
+        "oxlint": "^1.60.0",
         "oxlint-tsgolint": "^0.20.0",
-        "prettier": "^3.8.1",
+        "prettier": "^3.8.2",
         "prettier-plugin-astro": "^0.14.1",
         "prettier-plugin-organize-imports": "^4.3.0",
         "prettier-plugin-svelte": "^3.5.1",
         "prettier-plugin-tailwindcss": "^0.7.2",
-        "svelte": "^5.55.2",
+        "svelte": "^5.55.3",
         "svelte-sonner": "^1.1.0",
         "typescript": "^6.0.2"
     }

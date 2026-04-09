@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { store } from "../lib/p2p-store.svelte.ts";
+    import { logHub } from "#/lib/log-hub.svelte.ts";
     import type { LogEntry, LogType } from "#/lib/types/log";
     import { formatTime } from "#/lib/utils";
 
@@ -23,7 +23,7 @@
 </script>
 
 {#snippet logList(logs: LogEntry[], emptyText: String)}
-    <div class="h-full overflow-y-auto font-mono text-sm leading-relaxed">
+    <div class="flex h-full flex-col-reverse overflow-y-auto font-mono text-sm leading-relaxed">
         {#if logs.length === 0}
             <div class="py-4 text-center text-base-content/20">{emptyText}</div>
         {:else}
@@ -49,7 +49,7 @@
             系统日志
         </label>
         <div class="tab-content bg-transparent p-2">
-            {@render logList(store.systemLogs, "点击「启动节点」开始")}
+            {@render logList(logHub.logs, "点击「启动节点」开始")}
         </div>
 
         <!-- 节点日志标签 -->
@@ -59,7 +59,7 @@
             节点日志
         </label>
         <div class="tab-content bg-transparent p-2">
-            {@render logList(store.peerLogs, "暂无节点活动")}
+            {@render logList(logHub.peerLogs, "暂无节点活动")}
         </div>
     </div>
 </section>

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { store } from "../lib/p2p-store.svelte.ts";
+    import { p2pStore } from "../lib/p2p-store.svelte.ts";
     import { noSleep } from "../lib/no-sleep.svelte.ts";
     import PeerTree from "./PeerTree.svelte";
     import { error } from "#/lib/utils/index.ts";
@@ -16,26 +16,30 @@
 
     /** 按钮文本 */
     const buttonLabel = $derived(
-        store.status === "running" ? "停止节点" : store.status === "starting" ? "启动中..." : "启动节点",
+        p2pStore.status === "running"
+            ? "停止节点"
+            : p2pStore.status === "starting"
+              ? "启动中..."
+              : "启动节点",
     );
 
     /** 组件卸载时通过 store 完整清理节点 */
     $effect(() => {
-        if (!store.libp2p) return;
+        if (!p2pStore.libp2p) return;
         return () => {
-            store.stopNode().catch(console.error);
+            p2pStore.stopNode().catch(console.error);
         };
     });
 
     $effect(() => {
-        if (!store.startedAt) {
+        if (!p2pStore.startedAt) {
             uptimeSeconds = 0;
             return;
         }
         // 立即计算一次，避免初始显示 00:00:00 闪烁
-        uptimeSeconds = Math.floor((Date.now() - store.startedAt) / 1000);
+        uptimeSeconds = Math.floor((Date.now() - p2pStore.startedAt) / 1000);
         const timer = setInterval(() => {
-            uptimeSeconds = Math.floor((Date.now() - store.startedAt) / 1000);
+            uptimeSeconds = Math.floor((Date.now() - p2pStore.startedAt) / 1000);
         }, 1000);
         return () => clearInterval(timer);
     });
@@ -50,7 +54,7 @@
         if (!dialAddr.trim() || dialing) return;
         dialing = true;
         try {
-            await store.dial(dialAddr.trim());
+            await p2pStore.dial(dialAddr.trim());
             dialAddr = "";
         } finally {
             dialing = false;
@@ -59,15 +63,15 @@
 
     /** 节点启停控制 */
     function toggleNode() {
-        if (store.status === "running") {
-            store.stopNode();
-        } else if (store.status === "stopped" || store.status === "error") {
-            store.startNode();
+        if (p2pStore.status === "running") {
+            p2pStore.stopNode();
+        } else if (p2pStore.status === "stopped" || p2pStore.status === "error") {
+            p2pStore.startNode();
         }
     }
 </script>
 
-{#snippet statusDot(color: string)}
+{#snippet statusDot(color: String)}
     <div class="inline-grid *:[grid-area:1/1]">
         <span class="status status-{color} animate-ping"></span>
         <span class="status status-{color}"></span>
@@ -78,8 +82,8 @@
     <div class="flex-1 space-y-4 overflow-y-auto p-4">
         <!-- 启停按钮 -->
         <button
-            class="btn btn-block {store.status === 'running' ? 'btn-error' : 'btn-primary'}"
-            disabled={store.status === "starting"}
+            class="btn btn-block {p2pStore.status === 'running' ? 'btn-error' : 'btn-primary'}"
+            disabled={p2pStore.status === "starting"}
             onclick={toggleNode}
         >
             <span class="material-symbols">autorenew</span>
@@ -87,9 +91,9 @@
         </button>
 
         <!-- 错误信息 -->
-        {#if store.errorMsg}
+        {#if p2pStore.errorMsg}
             <div role="alert" class="alert rounded-none alert-soft px-3 py-2 alert-error">
-                {store.errorMsg}
+                {p2pStore.errorMsg}
             </div>
         {/if}
 
@@ -98,15 +102,15 @@
             <div class="stat place-items-center">
                 <div class="stat-title">运行状态</div>
                 <div class="stat-value">
-                    {#if store.status === "running"}
+                    {#if p2pStore.status === "running"}
                         <span class="badge gap-1.5 badge-soft badge-success">
                             {@render statusDot("success")} 运行中
                         </span>
-                    {:else if store.status === "starting"}
+                    {:else if p2pStore.status === "starting"}
                         <span class="badge gap-1.5 badge-soft badge-warning">
                             {@render statusDot("warning")} 启动中
                         </span>
-                    {:else if store.status === "error"}
+                    {:else if p2pStore.status === "error"}
                         <span class="badge gap-1.5 badge-soft badge-error">
                             {@render statusDot("error")} 异常
                         </span>
@@ -135,14 +139,14 @@
         <div class="glass-card stats w-full stats-horizontal">
             <div class="stat place-items-center">
                 <div class="stat-title">已监听地址</div>
-                <div class="stat-value {store.status === 'running' ? 'text-accent' : 'text-neutral'}">
-                    {store.multiaddrs.length}
+                <div class="stat-value {p2pStore.status === 'running' ? 'text-accent' : 'text-neutral'}">
+                    {p2pStore.localPeerAddresses.length}
                 </div>
             </div>
             <div class="stat place-items-center">
                 <div class="stat-title">已连接节点</div>
-                <div class="stat-value {store.status === 'running' ? 'text-success' : 'text-neutral'}">
-                    {store.peerConnTree.length}
+                <div class="stat-value {p2pStore.status === 'running' ? 'text-success' : 'text-neutral'}">
+                    {p2pStore.remotePeers.size}
                 </div>
             </div>
         </div>
@@ -158,14 +162,14 @@
                     <input
                         bind:value={dialAddr}
                         class="input join-item min-w-0 flex-1"
-                        disabled={store.status !== "running" || dialing}
+                        disabled={p2pStore.status !== "running" || dialing}
                         onkeydown={e => e.key === "Enter" && dialPeer()}
                         placeholder="/p2p/Qm..."
                         type="text"
                     />
                     <button
                         class="btn join-item btn-primary"
-                        disabled={store.status !== "running" || dialing || !dialAddr.trim()}
+                        disabled={p2pStore.status !== "running" || dialing || !dialAddr.trim()}
                         onclick={dialPeer}
                     >
                         <span class="material-symbols">link</span>
@@ -181,14 +185,14 @@
                     <span class="material-symbols text-lg">forum</span>
                     订阅节点
                 </h2>
-                {#if store.topicPeers.length > 0}
+                {#if p2pStore.topicPeers.length > 0}
                     <ul class="menu w-full p-0">
-                        {#each store.topicPeers as tp (tp.topic)}
+                        {#each p2pStore.topicPeers as tp (tp.topic)}
                             <li>
                                 <button
                                     class="truncate font-mono text-sm tracking-tight"
-                                    class:menu-active={store.selectedPeer === tp.peerId}
-                                    onclick={() => store.selectChatPeer(tp.peerId)}
+                                    class:menu-active={p2pStore.selectedPeer === tp.peerId}
+                                    onclick={() => p2pStore.selectChatPeer(tp.peerId)}
                                 >
                                     {@render statusDot(tp.subscribed ? "success" : "error")}
                                     <span class="truncate">{tp.peerId}</span>
@@ -196,7 +200,7 @@
                             </li>
                         {/each}
                     </ul>
-                {:else if store.status === "running"}
+                {:else if p2pStore.status === "running"}
                     <p class="text-center">暂无订阅节点</p>
                 {:else}
                     <p class="text-center">节点未启动</p>
@@ -211,11 +215,11 @@
                     <span class="material-symbols text-lg">lan</span>
                     本地节点
                 </h2>
-                {#if store.multiaddrs.length > 0}
+                {#if p2pStore.localPeerAddresses.length > 0}
                     <ul class="menu w-full p-0">
-                        <PeerTree peerId={store.peerId} addrs={store.multiaddrs} />
+                        <PeerTree peerId={p2pStore.localPeer} addresses={p2pStore.localPeerAddresses} />
                     </ul>
-                {:else if store.status === "running"}
+                {:else if p2pStore.status === "running"}
                     <p class="text-center">暂无监听的节点</p>
                 {:else}
                     <p class="text-center">节点未启动</p>
@@ -230,13 +234,13 @@
                     <span class="material-symbols text-lg">public</span>
                     远程节点
                 </h2>
-                {#if store.peerConnTree.length > 0}
+                {#if p2pStore.remotePeers.size > 0}
                     <ul class="menu w-full p-0">
-                        {#each store.peerConnTree as peer (peer.peerId)}
-                            <PeerTree peerId={peer.peerId} addrs={peer.addrs} />
+                        {#each p2pStore.remotePeers.entries() as [peerId, addresses] (peerId)}
+                            <PeerTree {peerId} {addresses} />
                         {/each}
                     </ul>
-                {:else if store.status === "running"}
+                {:else if p2pStore.status === "running"}
                     <p class="text-center">暂无连接的节点</p>
                 {:else}
                     <p class="text-center">节点未启动</p>

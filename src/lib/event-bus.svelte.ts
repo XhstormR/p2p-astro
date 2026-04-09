@@ -1,3 +1,4 @@
+import { untrack } from "svelte";
 import { SvelteMap } from "svelte/reactivity";
 import type { EventTypeMap } from "./types/event";
 
@@ -11,7 +12,7 @@ class EventBus {
     onEvent<T extends keyof EventTypeMap, U extends EventTypeMap[T]>(event: T, callback: (data: U) => void) {
         $effect(() => {
             let value = this.#channels.get(event);
-            if (value) callback(value.data);
+            if (value) untrack(() => callback(value.data)); // untrack 避免 $effect 读写被循环依赖
         });
     }
 

@@ -1,5 +1,6 @@
 <script lang="ts">
-    import { store } from "../lib/p2p-store.svelte.ts";
+    import { p2pStore } from "../lib/p2p-store.svelte.ts";
+    import { logHub } from "#/lib/log-hub.svelte.ts";
     import { messageHub } from "#/lib/message-hub.svelte.ts";
     import ChatMessage from "./ChatMessage.svelte";
     import { dropZone } from "../lib/actions/drop-zone.svelte.ts";
@@ -10,15 +11,15 @@
     /** 发送中状态 */
     let sending = $state(false);
     /** 待发送文件列表 */
-    let pendingFiles: File[] = $state([]);
+    let pendingFiles = $state<File[]>([]);
     /** 文件输入元素引用 */
-    let fileInput: HTMLInputElement | null = $state(null);
+    let fileInput = $state<HTMLInputElement | null>(null);
     /** 是否可发送：未在发送中、有目标节点、有内容 */
     let canSend = $derived(
-        !sending && !!store.selectedPeer && (!!chatInput.trim() || pendingFiles.length > 0),
+        !sending && !!p2pStore.selectedPeer && (!!chatInput.trim() || pendingFiles.length > 0),
     );
     /** 聊天消息列表（SvelteMap 本身是响应式的，#messageMap.set 自动触发 $derived 更新） */
-    let chatMessages = $derived(messageHub.getPeerMessages(store.selectedPeer));
+    let chatMessages = $derived(messageHub.getPeerMessages(p2pStore.selectedPeer));
 
     /** 发送消息：文本和/或文件 */
     async function sendMessage() {
@@ -28,18 +29,18 @@
         sending = true;
         try {
             if (text) {
-                await messageHub.sendText(store.selectedPeer, text);
+                await messageHub.sendText(p2pStore.selectedPeer, text);
                 chatInput = "";
             }
             for (const file of files) {
-                await messageHub.sendFile(store.selectedPeer, file);
+                await messageHub.sendFile(p2pStore.selectedPeer, file);
             }
             if (files.length > 0) {
                 pendingFiles = [];
                 if (fileInput) fileInput.value = "";
             }
         } catch (err) {
-            store.addLog(`发送失败: ${err instanceof Error ? err.message : String(err)}`, "warn");
+            logHub.addLog(`发送失败: ${err instanceof Error ? err.message : String(err)}`, "warn");
         } finally {
             sending = false;
         }
@@ -84,7 +85,7 @@
     {@attach pasteZone(files => setFileInput(files))}
 >
     <!-- 聊天头部 -->
-    {#if store.selectedPeer}
+    {#if p2pStore.selectedPeer}
         <div class="glass-card mx-5 mt-4 flex items-center gap-3 rounded-xl p-3">
             <div class="avatar avatar-placeholder shrink-0">
                 <div
@@ -94,34 +95,35 @@
                 </div>
             </div>
             <div class="min-w-0">
-                <h3 class="truncate font-bold tracking-wide">{store.selectedPeer}</h3>
+                <h3 class="truncate font-bold tracking-wide">{p2pStore.selectedPeer}</h3>
             </div>
         </div>
     {/if}
 
-    <!-- 聊天记录区域 -->
-    <div class="flex-1 space-y-5 overflow-y-auto px-5 py-4">
-        {#if !store.selectedPeer && store.status === "running"}
+    <!-- 聊天记录区域：flex col-reverse 让滚动起点在底部，新消息始终可见 -->
+    <div class="flex flex-1 flex-col-reverse overflow-y-auto px-5 py-4">
+        {#if !p2pStore.selectedPeer && p2pStore.status === "running"}
             {@render emptyMsg("从左侧选择一个订阅节点开始聊天")}
-        {:else if store.status !== "running"}
+        {:else if p2pStore.status !== "running"}
             {@render emptyMsg("启动节点以开始通信")}
         {:else if chatMessages.length === 0}
             {@render emptyMsg("暂无消息，发送一条开始聊天")}
         {:else}
-            <!-- 消息列表 -->
-            {#each chatMessages as msg (msg.timestamp)}
-                {@const isLocal = msg.sender === store.peerId}
-                <div class="chat {isLocal ? 'chat-end' : 'chat-start'}">
-                    <div class="chat-header">
-                        <span class="inline-block max-w-50 truncate align-bottom">
-                            {isLocal ? store.peerId : msg.sender}
-                        </span>
+            <div class="space-y-5">
+                {#each chatMessages as msg (msg.timestamp)}
+                    {@const isLocal = msg.sender === p2pStore.localPeer}
+                    <div class="chat {isLocal ? 'chat-end' : 'chat-start'}">
+                        <div class="chat-header">
+                            <span class="inline-block max-w-50 truncate align-bottom">
+                                {isLocal ? p2pStore.localPeer : msg.sender}
+                            </span>
+                        </div>
+                        <div class="chat-bubble {isLocal ? 'chat-bubble-primary' : ''}">
+                            <ChatMessage {msg} />
+                        </div>
                     </div>
-                    <div class="chat-bubble {isLocal ? 'chat-bubble-primary' : ''}">
-                        <ChatMessage {msg} />
-                    </div>
-                </div>
-            {/each}
+                {/each}
+            </div>
         {/if}
     </div>
 
