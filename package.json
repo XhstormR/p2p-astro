@@ -34,7 +34,7 @@
         "bson": "^7.2.0",
         "libp2p": "^3.2.2",
         "qr": "^0.5.5",
-        "tailwindcss": "^4.2.3"
+        "tailwindcss": "^4.2.4"
     },
     "devDependencies": {
         "@astrojs/svelte": "^8.0.5",
