@@ -40,7 +40,7 @@
         "@astrojs/svelte": "^8.1.0",
         "daisyui": "^5.5.19",
         "oxfmt": "^0.48.0",
-        "oxlint": "^1.63.0",
+        "oxlint": "^1.64.0",
         "oxlint-tsgolint": "^0.22.1",
         "prettier": "^3.8.3",
         "prettier-plugin-astro": "^0.14.1",
