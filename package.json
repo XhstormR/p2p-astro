@@ -26,7 +26,7 @@
         "@libp2p/gossipsub": "^16.0.1",
         "@libp2p/identify": "^4.1.6",
         "@libp2p/ping": "^3.1.6",
-        "@libp2p/webrtc": "^6.0.23",
+        "@libp2p/webrtc": "^6.0.24",
         "@libp2p/websockets": "^10.1.13",
         "@tailwindcss/vite": "^4.3.0",
         "astro": "^6.4.4",
