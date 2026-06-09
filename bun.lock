@@ -24,7 +24,7 @@
       },
       "devDependencies": {
         "@astrojs/svelte": "^8.1.2",
-        "daisyui": "^5.5.20",
+        "daisyui": "^5.5.23",
         "oxfmt": "^0.54.0",
         "oxlint": "^1.67.0",
         "oxlint-tsgolint": "^0.23.0",
@@ -688,7 +688,7 @@
 
     "csso": ["csso@5.0.5", "", { "dependencies": { "css-tree": "~2.2.0" } }, "sha512-0LrrStPOdJj+SPCCrGhzryycLjwcgUSHBtxNA8aIDxf0GLsRh1cKYhB00Gd1lDOS4yGH69+SNn13+TWbVHETFQ=="],
 
-    "daisyui": ["daisyui@5.5.20", "", {}, "sha512-HemJcjl0Gk9rQ8BcgofN6p+EURrqftQG9wK1Hkxs98i49xe68+QxpNvry+PyxwkIUgrbMpNmZ5ZWjmtffAjfhQ=="],
+    "daisyui": ["daisyui@5.5.23", "", {}, "sha512-xuheNUSL4T6ZVtWXoioqcNkjoyGX85QTDz4HTw2aBPfqk4fuMjax5HDo8qCmpV6M1YN8bGvfx5BpYCoDeRlt+A=="],
 
     "datastore-core": ["datastore-core@11.0.4", "", { "dependencies": { "@libp2p/logger": "^6.2.4", "interface-datastore": "^9.0.0", "interface-store": "^7.0.0", "it-drain": "^3.0.10", "it-filter": "^3.1.4", "it-map": "^3.1.4", "it-merge": "^3.0.12", "it-pipe": "^3.0.1", "it-sort": "^3.0.9", "it-take": "^3.0.9" } }, "sha512-k755ayqP66Q8NuzvVKTZiaTgcTJU1/EMmQAQ0OtZNA13JX1pFw+aCu42Db6/Q7LuyJUcBtqAJdfOjM7zA8/8Lw=="],
 
