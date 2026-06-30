@@ -31,7 +31,7 @@
         "@tailwindcss/vite": "^4.3.1",
         "astro": "^6.4.7",
         "bits-ui": "^2.18.1",
-        "bson": "^7.3.0",
+        "bson": "^7.3.1",
         "libp2p": "^3.3.4",
         "qr": "^0.6.0",
         "tailwindcss": "^4.3.1"
