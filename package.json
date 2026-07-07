@@ -23,7 +23,7 @@
         "@chainsafe/libp2p-yamux": "^8.0.1",
         "@helia/delegated-routing-v1-http-api-client": "^8.0.1",
         "@libp2p/circuit-relay-v2": "^4.2.7",
-        "@libp2p/gossipsub": "^16.0.3",
+        "@libp2p/gossipsub": "^16.0.4",
         "@libp2p/identify": "^4.1.8",
         "@libp2p/ping": "^3.1.7",
         "@libp2p/webrtc": "^6.0.25",
