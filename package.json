@@ -41,7 +41,7 @@
         "daisyui": "^5.7.0",
         "oxfmt": "^0.59.0",
         "oxlint": "^1.74.0",
-        "oxlint-tsgolint": "^0.24.0",
+        "oxlint-tsgolint": "^7.0.2001",
         "prettier": "^3.9.4",
         "prettier-plugin-astro": "^0.14.1",
         "prettier-plugin-organize-imports": "^4.3.0",
