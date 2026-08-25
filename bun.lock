@@ -7,7 +7,7 @@
       "dependencies": {
         "@chainsafe/libp2p-noise": "^17.0.0",
         "@chainsafe/libp2p-yamux": "^8.0.1",
-        "@helia/delegated-routing-v1-http-api-client": "^9.0.0",
+        "@helia/delegated-routing-v1-http-api-client": "^9.0.2",
         "@libp2p/circuit-relay-v2": "^4.2.10",
         "@libp2p/gossipsub": "^16.1.1",
         "@libp2p/identify": "^4.1.11",
@@ -210,7 +210,7 @@
 
     "@floating-ui/utils": ["@floating-ui/utils@0.2.12", "", {}, "sha512-HpCo8tmWzLVad5s2d19EhAz5zqrrQ6s69qd6moPMQvkOuSwDT1YgRfWSVuc4ennqrgv3OHppiOGMQ7oC13yIww=="],
 
-    "@helia/delegated-routing-v1-http-api-client": ["@helia/delegated-routing-v1-http-api-client@9.0.0", "", { "dependencies": { "@libp2p/interface": "^3.2.2", "@libp2p/peer-id": "^6.0.9", "@libp2p/utils": "^7.2.2", "@multiformats/multiaddr": "^13.0.3", "any-signal": "^4.2.0", "browser-readablestream-to-it": "^2.0.12", "it-first": "^3.0.11", "it-map": "^3.1.6", "it-ndjson": "^2.0.0", "multiformats": "^14.0.0", "uint8arrays": "^6.1.1" } }, "sha512-o5F8wr80dels/I3BE2DFBaBR657/4qdKdo728AJNIgD9mJQdmqdyj9chgVXozE55MGUYRHjMeK3Bq8Ygl8B48w=="],
+    "@helia/delegated-routing-v1-http-api-client": ["@helia/delegated-routing-v1-http-api-client@9.0.2", "", { "dependencies": { "@libp2p/interface": "^3.2.2", "@libp2p/peer-id": "^6.0.9", "@libp2p/utils": "^7.2.2", "@multiformats/multiaddr": "^13.0.3", "any-signal": "^4.2.0", "browser-readablestream-to-it": "^2.0.12", "it-first": "^3.0.11", "it-map": "^3.1.6", "it-ndjson": "^2.0.0", "multiformats": "^14.0.0", "race-signal": "^2.0.2", "uint8arrays": "^6.1.1" } }, "sha512-NVbX/8Uf+04g5gZkpqk6J6aFMCgMxzyQ2XBxW2gpYysGEuMSEESRyiYuWUrKysy9Oo08ST4tJJ19Vh/+4wjzOA=="],
 
     "@img/colour": ["@img/colour@1.1.0", "", {}, "sha512-Td76q7j57o/tLVdgS746cYARfSyxk8iEfRxewL9h4OMzYhbW4TAcppl0mT4eyqXddh6L/jwoM75mo7ixa/pCeQ=="],
 
@@ -1513,6 +1513,8 @@
     "@babel/traverse/debug": ["debug@4.4.3", "", { "dependencies": { "ms": "^2.1.3" } }, "sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA=="],
 
     "@bruits/satteri-wasm32-wasi/@emnapi/runtime": ["@emnapi/runtime@1.11.1", "", { "dependencies": { "tslib": "^2.4.0" } }, "sha512-vgj7R3y3Wgx24IQaGPA/R6YFXLHVMOZ0uVEyIQPaWs+rd1AzfEMXlAC22FYwO1XkKR6NPsq7mUandH8oIRdZFw=="],
+
+    "@helia/delegated-routing-v1-http-api-client/race-signal": ["race-signal@2.0.2", "", {}, "sha512-IuNNNY5NLriMFEGl3BVei2xq9NIcpkuAklhPWamhu5tRJrJz0w9sloUMz73YXpmUluE2EZocmJm9rpQqXmCPiA=="],
 
     "@helia/delegated-routing-v1-http-api-client/uint8arrays": ["uint8arrays@6.1.1", "", { "dependencies": { "multiformats": "^14.0.0" } }, "sha512-iz7JN0XCSZYA111lhFG2Ui9EhFvTNekqSRHw3lvMHq+dzwWy1OQftxFQREEh4rffU0oSoXdQHsk2TiHKVm4fsA=="],
 
