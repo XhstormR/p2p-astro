@@ -38,7 +38,7 @@
     },
     "devDependencies": {
         "@astrojs/svelte": "^9.0.1",
-        "daisyui": "^5.7.17",
+        "daisyui": "^5.7.20",
         "oxfmt": "^0.63.0",
         "oxlint": "^1.76.0",
         "oxlint-tsgolint": "^0.24.0",
