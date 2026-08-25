@@ -30,7 +30,7 @@
         "@libp2p/websockets": "^10.1.19",
         "@tailwindcss/vite": "^4.3.3",
         "astro": "^7.2.2",
-        "bits-ui": "^2.18.1",
+        "bits-ui": "^2.19.0",
         "bson": "^7.3.2",
         "libp2p": "^3.3.8",
         "qr": "^0.6.0",
