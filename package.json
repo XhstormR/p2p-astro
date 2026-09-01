@@ -27,7 +27,7 @@
         "@libp2p/identify": "^4.1.11",
         "@libp2p/ping": "^3.1.11",
         "@libp2p/webrtc": "^6.0.28",
-        "@libp2p/websockets": "^10.1.19",
+        "@libp2p/websockets": "^10.1.20",
         "@tailwindcss/vite": "^4.3.3",
         "astro": "^7.2.2",
         "bits-ui": "^2.19.0",
